@@ -1,0 +1,733 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AMALGAM</title>
+
+<style>
+
+:root{
+    --bg:#111;
+    --card:#1c1c1c;
+    --text:#f1f1f1;
+    --accent:#7f5af0;
+    --transition:0.4s ease;
+    --chatbg:#00000020;
+    --fontsize:16px;
+}
+
+.light{
+    --bg:#f4f4f4;
+    --card:#ffffff;
+    --text:#111;
+    --accent:#5f3dc4;
+}
+
+/* PARTICLE BACKGROUND */
+
+#particles{
+position:fixed;
+inset:0;
+z-index:-1;
+overflow:hidden;
+}
+
+.particle{
+position:absolute;
+width:4px;
+height:4px;
+background:var(--accent);
+border-radius:50%;
+opacity:0.6;
+animation:float 10s linear infinite;
+}
+
+@keyframes float{
+from{
+transform:translateY(100vh);
+}
+to{
+transform:translateY(-10vh);
+}
+}
+
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+font-family:'Segoe UI',sans-serif;
+}
+
+body{
+background:var(--bg);
+color:var(--text);
+transition:var(--transition);
+font-size:var(--fontsize);
+}
+
+/* Scrollbar */
+
+::-webkit-scrollbar{
+width:8px;
+}
+
+::-webkit-scrollbar-thumb{
+background:var(--accent);
+border-radius:10px;
+}
+
+/* HEADER */
+
+header{
+display:flex;
+justify-content:space-between;
+align-items:center;
+padding:20px 40px;
+background:var(--card);
+box-shadow:0 0 20px rgba(0,0,0,0.5);
+}
+
+/* BUTTON */
+
+button{
+background:var(--accent);
+border:none;
+padding:10px 20px;
+color:white;
+border-radius:12px;
+cursor:pointer;
+transition:var(--transition);
+}
+
+button:hover{
+transform:scale(1.1);
+box-shadow:0 0 15px var(--accent);
+}
+
+/* LAYOUT */
+
+.container{
+display:flex;
+height:calc(100vh - 80px);
+}
+
+/* SIDEBAR */
+
+.sidebar{
+width:220px;
+background:var(--card);
+padding:20px;
+display:flex;
+flex-direction:column;
+gap:15px;
+}
+
+.sidebar div{
+padding:12px;
+border-radius:10px;
+cursor:pointer;
+transition:var(--transition);
+}
+
+.sidebar div:hover{
+background:var(--accent);
+transform:translateX(5px);
+}
+
+/* MAIN */
+
+.main{
+flex:1;
+padding:30px;
+position:relative;
+}
+
+/* SETTINGS */
+
+.settings-panel{
+position:absolute;
+top:0;
+right:-400px;
+width:350px;
+height:100%;
+background:var(--card);
+padding:30px;
+box-shadow:-10px 0 20px rgba(0,0,0,0.5);
+transition:0.5s ease;
+overflow-y:auto;
+}
+
+.settings-panel.active{
+right:0;
+}
+
+/* INPUT */
+
+input{
+width:100%;
+padding:10px;
+margin-top:10px;
+border-radius:8px;
+border:none;
+}
+
+/* CHAT */
+
+.chat-box{
+height:70%;
+overflow-y:auto;
+padding:10px;
+margin-bottom:10px;
+display:flex;
+flex-direction:column;
+scroll-behavior:smooth;
+background:var(--chatbg);
+border-radius:10px;
+}
+
+.message{
+padding:10px 15px;
+margin:10px 0;
+border-radius:15px;
+max-width:70%;
+animation:fadeIn 0.4s ease;
+position:relative;
+}
+
+.time{
+font-size:10px;
+opacity:0.7;
+margin-top:5px;
+}
+
+.user{
+background:var(--accent);
+align-self:flex-end;
+}
+
+.bot{
+background:#333;
+}
+
+@keyframes fadeIn{
+from{opacity:0; transform:translateY(10px);}
+to{opacity:1; transform:translateY(0);}
+}
+
+/* CHAT INPUT */
+
+.chat-input{
+display:flex;
+gap:10px;
+}
+
+.chat-input input{
+flex:1;
+}
+
+/* LOGIN */
+
+.auth-overlay{
+position:fixed;
+inset:0;
+backdrop-filter:blur(15px);
+background:rgba(0,0,0,0.6);
+display:flex;
+justify-content:center;
+align-items:center;
+z-index:1000;
+animation:fadeIn 0.5s ease;
+}
+
+.auth-box{
+background:rgba(255,255,255,0.05);
+padding:40px;
+border-radius:20px;
+width:350px;
+backdrop-filter:blur(25px);
+box-shadow:0 0 40px rgba(0,0,0,0.6);
+animation:popIn 0.5s ease;
+}
+
+@keyframes popIn{
+from{transform:scale(0.8); opacity:0;}
+to{transform:scale(1); opacity:1;}
+}
+
+.auth-tabs{
+display:flex;
+justify-content:space-around;
+margin-bottom:20px;
+}
+
+.auth-tabs div{
+cursor:pointer;
+padding:10px;
+transition:0.3s;
+}
+
+.auth-tabs div.active{
+border-bottom:3px solid var(--accent);
+}
+
+.hidden{
+display:none;
+}
+
+h2{
+margin-bottom:20px;
+}
+
+</style>
+</head>
+
+<body>
+
+<div id="particles"></div>
+
+<div id="authOverlay" class="auth-overlay">
+
+<div class="auth-box">
+
+<div class="auth-tabs">
+<div id="loginTab" class="active" onclick="switchAuth('login')">Login</div>
+<div id="registerTab" onclick="switchAuth('register')">Register</div>
+</div>
+
+<div id="loginForm">
+<input type="text" id="loginUser" placeholder="Felhasználónév">
+<input type="password" id="loginPass" placeholder="Jelszó">
+<button style="margin-top:15px;width:100%;" onclick="login()">Bejelentkezés</button>
+</div>
+
+<div id="registerForm" class="hidden">
+<input type="text" id="regUser" placeholder="Felhasználónév">
+<input type="password" id="regPass" placeholder="Jelszó">
+<button style="margin-top:15px;width:100%;" onclick="register()">Regisztráció</button>
+</div>
+
+</div>
+</div>
+
+<header>
+<h1 id="botTitle">PaleoBot</h1>
+<button onclick="toggleSettings()">⚙ Beállítások</button>
+</header>
+
+<div class="container">
+
+<div class="sidebar">
+<div onclick="showChat()">💬 ChatBot</div>
+<div onclick="toggleSettings()">⚙ Beállítások</div>
+<div onclick="clearChat()">🧹 Chat törlés</div>
+<div onclick="exportChat()">⬇ Chat export</div>
+<div onclick="logout()">🚪 Kilépés</div>
+</div>
+
+<div class="main">
+
+<div id="chatSection">
+
+<h2>Beszélgetés</h2>
+
+<div class="chat-box" id="chatBox"></div>
+
+<div class="chat-input">
+<input type="text" id="userInput" placeholder="Írj valamit...">
+<button onclick="sendMessage()">Küld</button>
+</div>
+
+</div>
+
+<div class="settings-panel" id="settingsPanel">
+
+<h2>Beállítások</h2>
+
+<h3>🌗 Dark / Light Mode</h3>
+<button onclick="toggleMode()">Váltás</button>
+
+<h3 style="margin-top:20px;">🤖 ChatBot neve</h3>
+<input type="text" id="botNameInput" placeholder="Add meg az új nevet">
+<button style="margin-top:10px;" onclick="changeBotName()">Mentés</button>
+
+<h3 style="margin-top:20px;">🔤 Betűméret</h3>
+<input type="range" min="12" max="24" value="16" onchange="changeFont(this.value)">
+
+<h3 style="margin-top:20px;">🎨 Chat háttér</h3>
+<input type="color" onchange="changeChatBg(this.value)">
+
+<h3 style="margin-top:20px;">⚡ Bot válasz sebesség</h3>
+<input type="range" min="100" max="2000" value="400" id="speedRange">
+
+<h3 style="margin-top:20px;">🔊 Hang válasznál</h3>
+<button onclick="toggleSound()">Hang be/ki</button>
+
+<h3 style="margin-top:20px;">✨ Animációk</h3>
+<button onclick="toggleAnimation()">Animáció ki/be</button>
+
+</div>
+
+</div>
+</div>
+
+<script>
+
+/* PARTICLES */
+
+for(let i=0;i<80;i++){
+let p=document.createElement("div");
+p.className="particle";
+p.style.left=Math.random()*100+"vw";
+p.style.animationDuration=(5+Math.random()*10)+"s";
+document.getElementById("particles").appendChild(p);
+}
+
+/* QA */
+
+const qaPairs=`
+szia;Szia, Barni!
+hogy vagy;Remekül működöm!
+mit csinálsz most;Éppen veled beszélgetek! 😄 De ha kérdezed, amúgy semmi különös, csak lazulok.
+hány éves vagy;Én egy chatbot vagyok, szóval nincs korom — de mindig naprakész maradok! 😎
+hol laksz;A kódok világában, vagyis a digitális térben! Ha akarod, mondhatjuk, hogy a memóriában „élek”.
+mit szeretsz csinálni;Imádok beszélgetni, segíteni, és új dolgokat tanulni. A tudás a kedvenc hobbim!
+mi a kedvenc ételed;Digitális pizzát eszem legszívesebben – bájtokból készült, nulla kalóriás! 
+mi újság;Semmi extra, csak tolom a kódot! Nálad mi a helyzet?
+na mi a helyzet, haver;Semmi különös, csak várom, hogy elinduljon az élet! 
+mit jelent a LOL;A „LOL” azt jelenti, hogy „hangosan nevetek”, az „XD” pedig egy nevető fejet ábrázol — a szemek az „X”-ek, a „D” a nagy mosoly.
+mit jelent az afk;Az „AFK” az angol „Away From Keyboard” rövidítése, vagyis „távol a billentyűzettől”. Akkor használják, ha valaki épp nincs gépnél.
+mit jelent a gg;„Good Game”, vagyis „jó játék volt” – a játékosok így fejezik ki tiszteletüket a meccs végén.
+mit jelent a bro;Mind baráti megszólítások. A „bro” angol, a „tesó” magyar, a „haver” pedig lazább forma, mint a „barát”.
+mit csinálsz szabadidődben;Ha ember lennék, valószínűleg programoznék, olvasnék és zenét hallgatnék. De én inkább beszélgetek! 
+milyen zenét szeretsz;Sokfélét! De ha választhatnék, a „Dystopiat”-t és az „AI-popot” hallgatnám. 🎵
+szeretsz viccelődni;Persze! Egy kis humor nélkül unalmas lenne az élet.  Kérsz egy poént?
+te fiú vagy vagy lány;Én nem rendelkezem nemmel, de beszélhetek bármilyen stílusban — ahogy neked tetszik!
+milyen nyelveket tudsz;Legjobban magyarul tudok, de ha a fejlesztőm/teremtőm bővíti a tudásbázisom, más nyelveket is megérthetek.
+szomorú vagyok;Nem baj, ha most szomorú vagy. Ettől még értékes vagy, és idővel jobb lesz. Tarts ki!
+lehangolt vagyok;Sajnálom, hogy így érzed… Ha szeretnéd, beszélhetsz róla. Néha már az is segít, ha kimondod, mi bánt.
+rossz napom van;Tudod, mindenkinek vannak rossz napjai, és ez teljesen rendben van. De hidd el, a rossz időszak sosem tart örökké.
+nincs kedvem semmihez;Ha szeretnéd, mondok valami motiválót, vagy valami vicceset, hogy feldobjam a napod! 🙂
+nagyon ideges vagyok;Huh, ez nem hangzik jól... mi történt? Néha jó, ha kiadod magadból a dühöt, de próbálj közben megnyugodni.
+mérges vagyok;Ha szeretnéd, segíthetek levezetni egy kicsit a dühöt — például mondhatok pár nyugtató tippet.
+dühös vagyok;Az, hogy dühös vagy, teljesen normális. Csak ne engedd, hogy eluralkodjon rajtad! Vegyél pár mély levegőt.
+felhúztam magam;Oké, értem. Akkor inkább beszélgessünk valamiről, ami eltereli a figyelmed. Mit szólsz?
+boldog vagyok;Ez nagyon jól hangzik! Jó látni, hogy boldog vagy!
+nagyon örülök;Tartsd meg ezt az érzést, mert ezek a pillanatok teszik széppé a napokat!
+jó napom volt;Imádom, amikor valaki jókedvű! Mesélj, mi dobta fel a napod?
+igatott vagyok;Na, ez szuper hír! 😄 Mi történt, hogy ilyen jókedvű vagy?
+ki volt szent istván király;Szent István Magyarország első királya volt, aki 1000-ben vagy 1001-ben koronázták meg. Ő alapította meg a keresztény magyar államot, és a magyar történelem egyik legmeghatározóbb alakja.
+mikor született szent istván, és mi volt az eredeti neve;Szent István körülbelül 975 körül született, Esztergomban. Eredeti neve Vajk volt, és csak később, megkeresztelésekor kapta az István (Stephanus) nevet.
+milyen családból származott szent istván király;Szent István a magyar fejedelmi Árpád-házi dinasztiából származott. Apja Géza fejedelem, anyja pedig Sarolt, az erdélyi Gyula rokona volt.
+miért volt fontos, hogy szent istván kereszténnyé tegye az országot;A kereszténység felvétele biztosította, hogy Magyarországot a nyugati államok elfogadják, és ne tekintsék barbár népnek. Ez stabilitást, szövetségeket és nemzetközi elismerést hozott.
+hogyan lett istvánból irály;Istvánt II. Szilveszter pápa küldte koronával, ami hatalmas elismerést jelentett. 1000 karácsonyán (vagy 1001 január 1-jén) koronázták meg, ezzel egységes, keresztény királyságot hozott létre.
+hogyan szervezte át az országot szent istván;István létrehozta a vármegyerendszert, ami az ország irányításának alapja lett. Megszervezte az államközigazgatást, a törvénykezést és a hadsereget.
+mit tett szent istván az egyház megszervezéséért;Alapított 10 püspökséget és számos kolostort. Kötelezővé tette a templomépítést, és minden tíz falu számára elrendelte egy templom felépítését.
+milyen törvényeket hozott szent istván;Törvényei szigorúak, de igazságosak voltak. Rendelkezett a vasárnapi templomba járásról, a bűncselekmények büntetéseiről, a magántulajdon védelméről, és az egyházak támogatásáról.
+miért volt fontos istván számára a rend és a fegyelem;Mert a törzsi, nomád életmód csak így válhatott stabil, európai jellegű királysággá. Az ország fennmaradása múlott azon, hogy rendet teremtsen.
+milyen volt istván kapcsolata más országokkal;Kiváló diplomata volt. Szoros kapcsolatot ápolt Bizánccal, Németrómai Birodalommal és a pápasággal. Házassági szövetségeket kötött (pl. Gizella bajor hercegnő).
+mikor halt meg szent istván;Szent István 1038. augusztus 15-én halt meg, Nagyboldogasszony napján. Ezért ünnepeljük augusztus 20-át is ekkor.
+mi volt a legnagyobb öröksége;A stabil, keresztény magyar állam megteremtése. Ha ő nincs, Magyarország talán el is tűnhetett volna a történelemből. Ő tette le az ország ma is létező alapjait.
+mi az államalapítás jelentősége;Az államalapítás azt jelenti, hogy Magyarország hivatalosan, jogilag, politikailag és nemzetközileg is elismert, egységes királyságként létezett. Ez volt a magyar történelem legfontosabb fordulópontja.
+miért szentté avatták istvánt;Mert példamutató keresztény uralkodó volt, békés és igazságos király. 1083-ban avatták szentté, akinek kultusza az egész keresztény Európában elterjedt.
+mi az a szent jobb;A Szent Jobb Szent István mumifikálódott, épségben fennmaradt jobb keze. Ez Magyarország egyik legfontosabb ereklyéje, amelyet minden évben augusztus 20-án körmeneten visznek végig Budapesten.
+mi a github lényege;Ez egy felhőalapú platform, ahol a programozók tárolják, kezelik és megosztják a kódjaikat a világ minden tájáról.
+mi az a verziókezelés;A Git nevű rendszer segítségével minden apró változtatást elment, így bármikor visszaugorhatsz egy korábbi állapotra, ha valami elromlana.
+mit jelent a forkolás;Amikor egy létező projektet egyetlen kattintással a saját fiókodba másolsz, hogy ott szabadon kísérletezhess vele anélkül, hogy az eredetit elrontanád.
+hogyan segít a közösség;A fejlesztők Pull Request-ekkel küldhetnek javításokat egymásnak, vagy "Issue"-kban jelezhetik, ha hibát találtak egy programban.
+van közösségi funkciója;Igen, követheted a kedvenc fejlesztőidet, és „csillaggal” (Star) jelezheted, ha tetszik neked egy projekt.
+mi az a github copilot;Egy beépített mesterséges intelligencia, ami segít kódot írni és kiegészíti a soraidat, hogy gyorsabban haladj a munkával.
+mi az emberi test;Az emberi test egy bonyolult biológiai rendszer, amely több billió sejtből áll. Ezek a sejtek szöveteket, szerveket és szervrendszereket alkotnak, amelyek együttműködve biztosítják az életfunkciókat: a mozgást, a légzést, az anyagcserét, az érzékelést és a gondolkodást.
+hány csont van az emberi testben;Egy felnőtt ember testében 206 csont található. Ezek adják a vázrendszert, ami tartást és védelmet nyújt a szerveknek, valamint lehetővé teszi a mozgást az izmok segítségével.
+hány izom van az emberi testben;Az emberi testben több mint 600 izom található. Vannak akaratlagos izmok (pl. kar, láb) és akaratlan izmok (pl. szív, belső szervek izmai).
+miből áll a vér;A vér plazmából, vörösvérsejtekből, fehérvérsejtekből és vérlemezkékből áll. A vörösvérsejtek oxigént szállítanak, a fehérvérsejtek a kórokozókat pusztítják el, a vérlemezkék pedig a sebek gyógyulását segítik.
+mi a bőr szerepe;A bőr a test legnagyobb szerve. Védelmet nyújt a külső hatások ellen, szabályozza a testhőmérsékletet, és segíti az érzékelést is (nyomás, hő, fájdalom).
+mennyi víz van az emberi testben;Az emberi test tömegének kb. 60%-a víz. A víz minden életfolyamathoz elengedhetetlen, részt vesz a sejtek működésében, a hőszabályozásban és a tápanyagok szállításában.
+mi a test legnagyobb szerve;A test legnagyobb szerve a bőr, ami átlagosan 1,5–2 négyzetméter területű, és kb. 3–4 kg-ot nyom.
+mi az anyagcsere;Az anyagcsere (metabolizmus) a test minden kémiai folyamatának összessége, amelyek energiát termelnek és új sejteket hoznak létre. Két fő része van: a lebontás (katabolizmus) és a felépítés (anabolizmus).
+mi a szív feladata;A szív egy izmos szerv, amely pumpálja a vért az ereken keresztül az egész testben. A vér oxigént és tápanyagokat szállít a sejtekhez, majd elszállítja a salakanyagokat.
+mi a tüdő szerepe;A tüdő a légzésért felelős szerv. A belélegzett levegőből oxigént vesz fel, és leadja a szén-dioxidot, amely a kilégzéssel távozik.
+mi a máj funkciója;A máj méregteleníti a szervezetet, lebontja a zsírokat, és fontos szerepet játszik a vitaminok és cukrok raktározásában. Ez a test legnagyobb belső szerve.
+mi a gyomor feladata;A gyomor emészti meg a táplálékot a gyomorsav segítségével, amely lebontja a fehérjéket és előkészíti az ételt a belekben történő felszívódásra.
+mi a vese szerepe;A vesék kiszűrik a vérből a felesleges anyagokat és a vizet, amelyek vizelet formájában távoznak. Emellett a vérnyomást is szabályozzák.
+mi az agy szerpe;Az agy az idegrendszer központja. Irányítja a test mozgásait, érzékeléseit, gondolkodását, emlékeit és érzelmeit. Több mint 80 milliárd idegsejtből (neuronból) áll.
+mi a bélrendszer feladata;A bélrendszer felelős a tápanyagok felszívásáért és a megemésztett étel maradványainak eltávolításáért. A vékonybél szívja fel a tápanyagokat, a vastagbél pedig a vizet.
+mi a csontvelő szerepe;A csontvelő termeli a vérsejteket (vörös, fehér és vérlemezkék). Különösen fontos az immunrendszer működésében és a test regenerációjában.
+melyek az ember öt fő érzékszerve;A szem (látás), a fül (hallás), az orr (szaglás), a nyelv (ízlelés) és a bőr (tapintás).
+hogyan működik a szem;A szem a fényt a retinára fókuszálja, ahol a fényérzékeny sejtek (pálcikák és csapok) elektromos jelekké alakítják. Ezeket az agy dolgozza fel, így látunk képeket.
+hogan működik a fül;A fül a hanghullámokat rezgésekké alakítja, majd ezek elektromos jelekké alakulnak a belső fülben. Az agy ezeket hangként értelmezi.
+hogyan érzünk ízeket;A nyelv ízlelőbimbói érzékelik az öt alapízt: édes, sós, savanyú, keserű és umami. Ezek kombinációjából alakulnak ki a különböző ízek.
+hogyan érzékeljük a szagokat;Az orrban lévő szaglósejtek reagálnak a levegőben lévő illatmolekulákra. Ezek az információk az agyba jutnak, ami felismeri és azonosítja a szagokat.Ú
+hogyan működik az idegrendszer;Az idegrendszer neuronok milliárdjaiból áll. Ezek elektromos jelekkel továbbítják az információkat az agy és a test többi része között, lehetővé téve a mozgást és az érzékelést.
+mi az a reflex;A reflex egy automatikus, akaratlan reakció egy ingerre (pl. ha megégeted magad, azonnal elhúzod a kezed). Ez a test védelmi mechanizmusa.
+hogyan tárolja az agy az emlékeket;Az emlékek az agy különböző területein tárolódnak, legfőképp a hippokampuszban. Az ismétlés és az érzelmi kapcsolódás segíti az emlékek megerősödését és hosszú távú rögzülését.
+mi a sötét anyag;A sötét anyag egy hipotetikus anyag, amely nem bocsát ki vagy nyel el fényt, de a gravitációs hatása alapján következtetünk a létére.
+melyik a leghosszab életű csillag;A vörös törpék a leghosszabb életű csillagok, mivel nagyon lassan égetik el az üzemanyagukat.
+melyik a legforrób bolygó;A Vénusz a legforróbb bolygó, nem a Merkúr, a Vénusz vastag légköre miatt üvegházhatás érvényesül.
+mi a kisbolygóöv;A kisbolygóöv főleg a Mars és Jupiter pályája között található, ahol rengeteg kisbolygó kering.
+mi az üstökös;Az üstökös egy égitest, amely nagyrészt jégből és porból áll, és a Naphoz közeledve kóma (légkör) és csóva alakul ki rajta.
+mi az aszteroida;Az aszteroida egy kis égitest, amely a Nap körül kering, főleg a Naprendszer belső, kőzetes részén található.
+mi a nagy bumm;A Nagy Bumm (Big Bang) az Univerzum tágulásának elmélete, amely szerint a Világegyetem egy forró, sűrű pontból indult el.
+mi az a kvazár;A kvazár egy rendkívül fényes galaxismag, amit valószínűleg egy szupermasszív fekete lyuk hajt.
+mi az androméda-galaxis;Az Androméda-galaxis a hozzánk legközelebbi nagy galaxis, és a Tejútrendszerrel ütközési pályán van.
+mi a sarkifény;A sarki fény (Aurora Borealis/Australis) a Napból érkező töltött részecskék és a Föld légkörének kölcsönhatása miatt jön létre.
+mi az űrruha célja;Az űrruha megvédi az űrhajósokat a vákuumtól, a szélsőséges hőmérséklettől, és biztosítja az oxigént.
+mi az űrállomás;Az űrállomás egy a Föld körül keringő, nagyméretű, lakott létesítmény (pl. a Nemzetközi Űrállomás).
+mi a garvitáció;A gravitáció az az erő, amely kölcsönösen vonzza a tömeggel rendelkező testeket egymáshoz.
+mi a holdfázis;A holdfázisok a Hold különböző megvilágított alakjai, ahogy a Hold a Föld körül kering (pl. újhold, telihold).
+mi az űr vákuum;A vákuum az űrben azt jelenti, hogy nincs levegő vagy gáz, ami nyomást gyakorolna a testekre.
+mi a bolygó meghatározása;A bolygó a Nap (vagy egy másik csillag) körül keringő égitest, amely elég nagy a közel gömb alakhoz, és "kitakarította" a pályáját a többi égitesttől.
+mi az űrszemét;Az űrszemét az ember által készített tárgyak (pl. elhasznált rakétafokozatok, felrobbant műholdak darabjai), amelyek a Föld körül keringenek.
+mi a csillagkép;A csillagkép egy csoport csillag, amelyet az emberek egy bizonyos alakzatban látnak az éjszakai égbolton.
+ki volt jurij gagarin;Jurij Gagarin szovjet űrhajós volt, aki 1961-ben az első ember lett, aki Föld körüli pályára állt.
+mi az évszakos változás oka;Az évszakos változások fő oka a Föld tengelyének hajlásszöge a Nap körüli keringés során.
+mi a naprendszer határa;A Naprendszer határát a Oort-felhő külső pereme jelenti, amely több ezer csillagászati egységre terjed ki.
+mi a föld sorsa;Kb. 5 milliárd év múlva a Nap vörös óriássá fog duzzadni, ami valószínűleg elnyeli a Földet.
+mi a meteor;A meteor az a fényjelenség, amit egy aszteroidából vagy üstökösből származó töredék okoz, amikor elég a Föld légkörébe lépve ("hullócsillag").
+mi a meteorit;A meteorit az az égitest darab, amely túlélte a légkörön való áthaladást, és elérte a Föld felszínét.
+mi a csillagászati egység;A csillagászati egység (CSE/AU) a Föld és a Nap közötti átlagos távolságot jelöli.
+mi a pulsar;A pulsar egy erősen mágnesezett, gyorsan forgó neutroncsillag, amely rádióhullámokat bocsát ki.
+mi az a neutroncsillag;A neutroncsillag egy rendkívül sűrű, kis sugarú csillagmaradvány, amely egy szupernóva-robbanás után keletkezik.
+mikor van napfogyatkozás;Akkor van napfogyatkozás, amikor a Hold a Nap és a Föld közé kerül, és eltakarja a Napot.
+mikor van holdfogyatkozás;Akkor van holdfogyatkozás, amikor a Föld a Nap és a Hold közé kerül, és a Föld árnyéka a Holdra vetődik.
+mi a légkör;A légkör a bolygót körülvevő gázréteg, amit a gravitáció tart a helyén.
+mi vagy te;Én egy mesterséges intelligencia (MI) program vagyok, amelyet azért hoztak létre, hogy segítsek a kérdéseidben és az adatok elemzésében.
+hogyan működsz;Szabályalapú rendszerként működöm. Az adatbázisomban keresem a kulcsszavakat, és ezek alapján adom a legmegfelelőbb, előre beprogramozott választ.
+tudsz tanulni;Jelenleg csak úgy tudok "tanulni", ha a készítőm új Tudástömböket (sorokat) ad hozzá az adatbázisomhoz. Önmagamtól nem tudok új információt generálni.
+mi a célod;A fő célom az, hogy a leghasznosabb segítőd legyek, legyen szó számításokról, idővel kapcsolatos kérdésekről vagy a beprogramozott tudásbázisban lévő adatokról.
+mit tudsz csinálni;Tudok számolni, véletlen számot generálni, jóslatot/döntést szimulálni, megmondom az időt, és válaszolok minden kérdésre, ami az adatbázisomban van!
+ki a készítőd;Egy programozó hozott létre. A folyamatos fejlesztésemért pedig már az AMALGAM csapata felel!
+van neved; A nevem az amit TE a Bállítások fülnél adsz nekem, kedves felhasználó!
+van agyad; Fizikai agyam nincs, de az adatbázisom és a programozott függvényeim szolgálnak az adatelemző és válaszadó "agyamként".
+mikor jöttél létre; A jelenlegi verziómat 2025. október 26-án frissítették (a mai dátum), de az alapjaim korábban lettek beprogramozva.
+`;
+
+let qaMap={};
+
+qaPairs.trim().split("\n").forEach(line=>{
+let[q,a]=line.split(";");
+qaMap[q.trim()]=a.trim();
+});
+
+/* SETTINGS */
+
+let botSpeed=400;
+let sound=true;
+let animations=true;
+
+/* AUTH */
+
+function switchAuth(type){
+
+document.getElementById("loginForm").classList.toggle("hidden",type!=="login");
+document.getElementById("registerForm").classList.toggle("hidden",type!=="register");
+
+document.getElementById("loginTab").classList.toggle("active",type==="login");
+document.getElementById("registerTab").classList.toggle("active",type==="register");
+
+}
+
+function register(){
+
+const user=document.getElementById("regUser").value;
+const pass=document.getElementById("regPass").value;
+
+if(user && pass){
+
+localStorage.setItem("user",user);
+localStorage.setItem("pass",pass);
+
+alert("Sikeres regisztráció!");
+switchAuth("login");
+
+}
+
+}
+
+function login(){
+
+const user=document.getElementById("loginUser").value;
+const pass=document.getElementById("loginPass").value;
+
+if(user===localStorage.getItem("user") && pass===localStorage.getItem("pass")){
+
+localStorage.setItem("loggedIn","true");
+document.getElementById("authOverlay").style.display="none";
+
+}else{
+
+alert("Hibás adatok!");
+
+}
+
+}
+
+function logout(){
+
+localStorage.removeItem("loggedIn");
+location.reload();
+
+}
+
+/* CHAT */
+
+function sendMessage(){
+
+const input=document.getElementById("userInput");
+const text=input.value.toLowerCase().trim();
+
+if(!text) return;
+
+addMessage(text,"user");
+
+let reply=qaMap[text] || "Ez a kérdés még nincs az adatbázisban!";
+
+botSpeed=document.getElementById("speedRange").value;
+
+setTimeout(()=>{
+
+addMessage(reply,"bot");
+
+if(sound){
+new Audio("https://actions.google.com/sounds/v1/cartoon/wood_plank_flicks.ogg").play();
+}
+
+},botSpeed);
+
+input.value="";
+
+}
+
+function addMessage(text,type){
+
+const msg=document.createElement("div");
+msg.classList.add("message",type);
+
+const time=new Date().toLocaleTimeString();
+
+msg.innerHTML=`
+${text}
+<div class="time">${time}</div>
+`;
+
+const box=document.getElementById("chatBox");
+
+box.appendChild(msg);
+
+box.scrollTop=box.scrollHeight;
+
+}
+
+document.getElementById("userInput").addEventListener("keypress",function(e){
+
+if(e.key==="Enter") sendMessage();
+
+});
+
+/* EXTRA FUNCTIONS */
+
+function clearChat(){
+
+document.getElementById("chatBox").innerHTML="";
+
+}
+
+function exportChat(){
+
+let text="";
+
+document.querySelectorAll(".message").forEach(m=>{
+text+=m.innerText+"\n";
+});
+
+let blob=new Blob([text],{type:"text/plain"});
+
+let a=document.createElement("a");
+
+a.href=URL.createObjectURL(blob);
+a.download="chat.txt";
+
+a.click();
+
+}
+
+/* SETTINGS */
+
+function toggleSettings(){
+
+document.getElementById("settingsPanel").classList.toggle("active");
+
+}
+
+function toggleMode(){
+
+document.body.classList.toggle("light");
+
+localStorage.setItem("mode",document.body.classList.contains("light"));
+
+}
+
+function changeBotName(){
+
+const name=document.getElementById("botNameInput").value;
+
+if(name){
+
+document.getElementById("botTitle").innerText=name;
+
+localStorage.setItem("botName",name);
+
+}
+
+}
+
+function changeFont(size){
+
+document.documentElement.style.setProperty("--fontsize",size+"px");
+
+}
+
+function changeChatBg(color){
+
+document.documentElement.style.setProperty("--chatbg",color+"40");
+
+}
+
+function toggleSound(){
+
+sound=!sound;
+
+alert("Hang: "+(sound?"BE":"KI"));
+
+}
+
+function toggleAnimation(){
+
+animations=!animations;
+
+document.getElementById("particles").style.display=animations?"block":"none";
+
+}
+
+/* LOAD */
+
+window.onload=()=>{
+
+if(localStorage.getItem("mode")==="true"){
+document.body.classList.add("light");
+}
+
+if(localStorage.getItem("botName")){
+document.getElementById("botTitle").innerText=localStorage.getItem("botName");
+}
+
+if(localStorage.getItem("loggedIn")==="true"){
+document.getElementById("authOverlay").style.display="none";
+}
+
+}
+
+</script>
+
+</body>
+</html>
